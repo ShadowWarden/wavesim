@@ -7,9 +7,6 @@
 # This project is licensed under the GNU GPL v3. For more information about the 
 # license go online to <http://www.gnu.org/licenses>. Any reproduction of code
 # in this file MUST contain this header in its entirety.
-# If this simulation has been useful or informative, I would love to hear from 
-# you! Please write to omkar.ramachandran@colorado.edu if you have any queries/
-# suggestions/comments/new ideas pertaining to FTDT simulations in general
 #
 from matplotlib.pylab import *
 # import scipy.weave as weave (not used)
@@ -20,7 +17,7 @@ Ncxl = 300
 Ncxh = 413
 Ncyl = 230
 Ncyh = 250
-cred = 0.5
+cred = 1.5
 Nxwall=256 # x position of the dividing wall
 w=256       # width of opening in dividing wall
 Nbeg=(Ny-1-w)/2
@@ -31,11 +28,14 @@ ntau=200 # tau/dt - number of points per rise time.
 Nsave=Nt/Nstep
 nstart=-3*ntau # start three sigmas earlier than peak.
 dt=1.0
-alpha=1.0/sqrt(2.0) # alpha=c*dt/dx is the courant number in 2-D
+alpha0=1/sqrt(2)
+ # alpha=c*dt/dx is the courant number in 2-D
 c=ones((Ny,Nx))     # speed of wave (no dispersion)
 # Initialize the Electric and magnetic fields. For this, we need a dx
 # that respects Courant condition. Leave it as a parameter.
 c[Ncyl:Ncyh,Ncxl:Ncxh] = cred 
+alpha=ones((Ny,Nx))/sqrt(2)
+alpha[Ncyl:Ncyh,Ncxl:Ncxl] = cred/sqrt(2)
 dx=c*dt/alpha
 Lx=(Nx-1)*dx;Ly=(Ny-1)*dx
 xwall=Nxwall*dx
@@ -51,8 +51,8 @@ scalex=Nx/16.0 # size of source along x,y.
 scaley=Ny/8.0
 Ntsave=4*ntau/Nstep # time when a snapshot is to be taken
 # define coefficients
-alpha=120*pi*alpha  # just a scalar, since we assume a homogeneous region.
-alpha=alpha/(120*pi)
+#alpha=120*pi*alpha  # just a scalar, since we assume a homogeneous region.
+#alpha=alpha/(120*pi)
 t = arange(nstart,Nt+nstart)*dt
 Jsrc=exp(-(t/(ntau+0.0))**2/2.0)*sin(0.1*t)
 X,Y=meshgrid(x,y)
@@ -65,23 +65,23 @@ def getname(prompt,string):
     str=string
   return(str)
 def ucalc(u,dudx,dudy,alpha):
-  unew[1:-1,1:-1]=u[1:-1,1:-1]+alpha*(dudy[1:,1:-1]-dudy[0:-1,1:-1] \
+  unew[1:-1,1:-1]=u[1:-1,1:-1]+alpha[1:,1:-1]*(dudy[1:,1:-1]-dudy[0:-1,1:-1] \
     -dudx[1:-1,1:]+dudx[1:-1,0:-1])
-  unew[-1,:]=u[-2,:]+(1-alpha)/(1+alpha)*(u[-1,:]-unew[-2,:])
-  unew[:,-1]=u[:,-2]+(1-alpha)/(1+alpha)*(u[:,-1]-unew[:,-2])
-  unew[0,:]=u[1,:]+(1-alpha)/(1+alpha)*(u[0,:]-unew[1,:])
-  unew[:,0]=u[:,1]+(1-alpha)/(1+alpha)*(u[:,0]-unew[:,1])
+  unew[-1,:]=u[-2,:]+(1-alpha0)/(1+alpha0)*(u[-1,:]-unew[-2,:])
+  unew[:,-1]=u[:,-2]+(1-alpha0)/(1+alpha0)*(u[:,-1]-unew[:,-2])
+  unew[0,:]=u[1,:]+(1-alpha0)/(1+alpha0)*(u[0,:]-unew[1,:])
+  unew[:,0]=u[:,1]+(1-alpha0)/(1+alpha0)*(u[:,0]-unew[:,1])
   unew[0:Nbeg,Nxwall]=0
   unew[Nend:,Nxwall]=0
-  unew[0:Nbeg,Nxwall-1]=u[0:Nbeg,Nxwall-2]+(1-alpha)/(1+alpha)* \
+  unew[0:Nbeg,Nxwall-1]=u[0:Nbeg,Nxwall-2]+(1-alpha0)/(1+alpha0)* \
                          (u[0:Nbeg,Nxwall-1]-unew[0:Nbeg,Nxwall-2])
-  unew[Nend:,Nxwall-1]=u[Nend:,Nxwall-2]+(1-alpha)/(1+alpha)* \
+  unew[Nend:,Nxwall-1]=u[Nend:,Nxwall-2]+(1-alpha0)/(1+alpha0)* \
                          (u[Nend:,Nxwall-1]-unew[Nend:,Nxwall-2])
   u[:]=unew[:]+(Jsrc[n]*Jshape)[:]
 def dudycalc(u,dudy,alpha):
-  dudy[:,1:-1]=alpha*(u[1:,1:-1]-u[0:-1,1:-1])+dudy[:,1:-1]
+  dudy[:,1:-1]=alpha[1:,1:-1]*(u[1:,1:-1]-u[0:-1,1:-1])+dudy[:,1:-1]
 def dudxcalc(u,dudx,alpha):
-  dudx[1:-1,:]=-alpha*(u[1:-1,1:]-u[1:-1,0:-1])+dudx[1:-1,:]
+  dudx[1:-1,:]=-alpha[1:-1,1:]*(u[1:-1,1:]-u[1:-1,0:-1])+dudx[1:-1,:]
 u=zeros((Ny,Nx)) # define the arrays holding the current time info
 dudx=zeros((Ny,Nx-1))
 dudy=zeros((Ny-1,Nx))

@@ -7,9 +7,6 @@
 # This project is licensed under the GNU GPL v3. For more information about the 
 # license go online to <http://www.gnu.org/licenses>. Any reproduction of code
 # in this file MUST contain this header in its entirety.
-# If this simulation has been useful or informative, I would love to hear from 
-# you! Please write to omkar.ramachandran@colorado.edu if you have any queries/
-# suggestions/comments/new ideas pertaining to FTDT simulations in general
 #
 from matplotlib.pylab import *
 # import scipy.weave as weave (not used)
